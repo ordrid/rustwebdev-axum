@@ -1,14 +1,23 @@
 use std::io::{Error, ErrorKind};
 use std::str::FromStr;
 
+use axum::http::{header, Method};
 use axum::Json;
 use axum::{routing::get, Router};
 
 use serde::{Deserialize, Serialize};
+use tower_http::cors::{Any, CorsLayer};
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/questions", get(get_questions));
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_headers([header::CONTENT_TYPE])
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE]);
+
+    let app = Router::new()
+        .route("/questions", get(get_questions))
+        .layer(cors);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
     println!(
